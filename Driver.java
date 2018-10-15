@@ -17,7 +17,7 @@ public class Driver {
     ParseTreeWalker walker = new ParseTreeWalker();
 
     // create listener then feed to walker
-    AlanPrettyPrintListener prettier = new AlanPrettyPrintListener(40, 2);
+    AlanPrettyPrintListener prettier = new AlanPrettyPrintListener();
 
     walker.walk(prettier, tree); // walk parse tree
 
