@@ -1,4 +1,5 @@
-import java.io.PrintWriter;
+import java.io.FileInputStream;
+import java.util.Properties;
 
 import de.uka.ilkd.pp.*;
 
@@ -9,15 +10,35 @@ public class AlanPrettyPrintListener extends AlanBaseListener {
 
   private final StringBuilder buffer;
 
+  private Properties userConfig;
+
+
   /* I'm going to love myself for this at the end of this project. */
   private final Layouter<NoExceptions> l;
 
-  public AlanPrettyPrintListener(int lineWidth, int tabStop) {
-    buffer = new StringBuilder();
+  public AlanPrettyPrintListener(int _lineWidth, int _tabStop) {
 
-    
-    backend = new StringBackend(buffer, 20);
-    layouter = new Layouter<>(backend, 2);
+    /* Load the config file */
+    String rootPath = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+    String defaultConfigPath = rootPath + "alan-format.default.properties";
+    String userConfigPath = rootPath + "alan-format.properties";
+
+    userConfig = null; 
+    try {
+      Properties defaultConfig = new Properties();
+      defaultConfig.load(new FileInputStream(defaultConfigPath));
+
+      userConfig = new Properties(defaultConfig);
+      userConfig.load(new FileInputStream(userConfigPath));
+    } catch (Exception ignored) {}
+
+    int lineWidth = Integer.parseInt(userConfig.getProperty("linewidth"));
+    int indent = Integer.parseInt(userConfig.getProperty("indent"));
+
+    /* Setup layouter */
+    buffer = new StringBuilder();
+    backend = new StringBackend(buffer, lineWidth);
+    layouter = new Layouter<>(backend, indent);
 
     l = layouter;
   }
@@ -116,11 +137,15 @@ public class AlanPrettyPrintListener extends AlanBaseListener {
     l.beginI(2);
     switch (type) {
       case 1:
-        l.print(")");
+        l.print(")")
+         .brk(1, 0);
         break;
       case 2:
         for (int i = 0; i < nType; i++) {
           enterType(ctx.type(i));
+          l.brk(1, 0)
+           .print(ctx.ID(i + 1).getText())
+           .brk(1, 0);
         }
     }
 
